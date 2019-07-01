@@ -14,15 +14,27 @@ def hello_world():
 @app.route('/live-data')
 def live_data():
     # load data from elasticsearch
-    client = Elasticsearch()
-    s = Search(using=client, index="logstash*").filter("range", **{"@timestamp":{'gte': 'now-3s', 'lt': 'now'}})
+    # client = Elasticsearch()
+    # s = Search(using=client, index="logstash*").filter("range", **{"@timestamp":{'gte': 'now-3s', 'lt': 'now'}})
 
-    s.execute()
+    # s.execute()
     # Create a PHP array and echo it as JSON
-    data = [time() * 1000, s.count()]
+    data = [time() * 1000, random() * 100]
+    response = make_response(json.dumps(data))
+    response.content_type = 'application/json'
+    return response
+
+@app.route('/live-port')
+def live_port():
+    data = []
+    i = 0
+    while i < 5:
+        data.append([time() * 1000, random() * 10])
+        i += 1
+    print(data)
     response = make_response(json.dumps(data))
     response.content_type = 'application/json'
     return response
 
 if __name__ == '__main__':
-    app.run(debug=True, host='ec2-3-13-234-92.us-east-2.compute.amazonaws.com', port=80)
+    app.run(debug=True, host='localhost', port=80)

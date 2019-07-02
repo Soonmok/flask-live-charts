@@ -19,7 +19,13 @@ def live_data():
 
     # s.execute()
     # Create a PHP array and echo it as JSON
-    data = [time() * 1000, random() * 100]
+    data = {}
+    data['traffic'] = [time() * 1000, random() * 100]
+    data['port'] = []
+    i = 0
+    while i < 5:
+        data['port'].append([time() * 1000, random() * 10])
+        i += 1
     response = make_response(json.dumps(data))
     response.content_type = 'application/json'
     return response
@@ -31,7 +37,6 @@ def live_port():
     while i < 5:
         data.append([time() * 1000, random() * 10])
         i += 1
-    print(data)
     response = make_response(json.dumps(data))
     response.content_type = 'application/json'
     return response

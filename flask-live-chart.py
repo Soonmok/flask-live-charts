@@ -14,32 +14,20 @@ def hello_world():
 @app.route('/live-data')
 def live_data():
     # load data from elasticsearch
-    # client = Elasticsearch()
-    # s = Search(using=client, index="logstash*").filter("range", **{"@timestamp":{'gte': 'now-3s', 'lt': 'now'}})
+    client = Elasticsearch()
+    s = Search(using=client, index="logstash*").filter("exists", field="dst_ip").filter("range", **{"@timestamp":{'gte': 'now-3s', 'lt': 'now'}})
 
-    # s.execute()
+    response = s.execute()
     # Create a PHP array and echo it as JSON
     data = {}
-    data['traffic'] = [time() * 1000, random() * 100]
+    data['traffic'] = [time() * 1000, s.count()]
     data['port'] = []
-    i = 0
-    while i < 5:
-        data['port'].append([time() * 1000, random() * 10])
-        i += 1
-    response = make_response(json.dumps(data))
-    response.content_type = 'application/json'
-    return response
-
-@app.route('/live-port')
-def live_port():
-    data = []
-    i = 0
-    while i < 5:
-        data.append([time() * 1000, random() * 10])
-        i += 1
+    for hit in response:
+        data['port'].append([time() * 1000, hit.dpt])
+    print(len(data['port']))
     response = make_response(json.dumps(data))
     response.content_type = 'application/json'
     return response
 
 if __name__ == '__main__':
-    app.run(debug=True, host='localhost', port=80)
+    app.run(debug=True, host='ec2-3-13-234-92.us-east-2.compute.amazonaws.com', port=80)

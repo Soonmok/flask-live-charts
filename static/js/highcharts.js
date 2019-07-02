@@ -6,18 +6,35 @@ var scatter;
  * to request again
  */
 function requestData() {
+
+    async function updateChart(point) { 
+    	await loadData(point).then(() => {
+	    console.log(scatter.series[0]);
+	    scatter.redraw();
+	});
+    }
+
+    function loadData(point){
+    	return new Promise(function(resolve, reject){
+            var seriesTraffic = chart.series[0],
+                shiftTraffic = seriesTraffic.data.length > 20,
+		seriesPort = scatter.series[0],
+		shiftPort = seriesPort.data.length > 20; // shift if the series is
+            // add the point
+            chart.series[0].addPoint(point['traffic'], true, shiftTraffic);
+	    console.log(point['port']);
+            for (var i = 0; i < point['port'].length - 1; i += 1) {
+                scatter.series[0].addPoint(point['port'][i], false);
+            }
+	    resolve("resolve");
+	});
+    }
+
     $.ajax({
         url: '/live-data',
         success: function(point) {
-            var series = chart.series[0],
-                shift = series.data.length > 20; // shift if the series is
-            // add the point
-            chart.series[0].addPoint(point['traffic'], true, shift);
-            for (var i = 0; i < point['port'].length; i += 1) {
-                scatter.series[0].addPoint(point['port'][i], false);
-            }
-            //scatter.redraw();
             // call it again after one second
+	    updateChart(point);
             setTimeout(requestData, 1000);
         },
         cache: false
@@ -59,10 +76,7 @@ $(document).ready(function() {
         chart: {
             renderTo: 'scatter-container',
             type: 'scatter',
-            zoomType: 'xy',
-            events: {
-              load: requestData
-            }
+            zoomType: 'xy'
         },
         title: {
             text: 'Destination Port'

@@ -1,5 +1,6 @@
-var chart;
-var scatter;
+var trafficChart;
+var lenScatter;
+var portScatter;
 
 /**
  * Request data from the server, add it to the graph and set a timeout
@@ -9,23 +10,24 @@ function requestData() {
 
     async function updateChart(point) { 
     	await loadData(point).then(() => {
-	    console.log(scatter.series[0]);
-	    scatter.redraw();
+	    lenScatter.redraw();
+	    portScatter.redraw();
+	    console.log("asd");
 	});
     }
 
     function loadData(point){
     	return new Promise(function(resolve, reject){
-            var seriesTraffic = chart.series[0],
-                shiftTraffic = seriesTraffic.data.length > 20,
-		seriesPort = scatter.series[0],
-		shiftPort = seriesPort.data.length > 20; // shift if the series is
+            var seriesTraffic = trafficChart.series[0],
+                shiftTraffic = seriesTraffic.data.length > 20
             // add the point
-            chart.series[0].addPoint(point['traffic'], true, shiftTraffic);
-	    console.log(point['port']);
+            trafficChart.series[0].addPoint(point['traffic'], true, shiftTraffic);
             for (var i = 0; i < point['port'].length - 1; i += 1) {
-                scatter.series[0].addPoint(point['port'][i], false);
+                portScatter.series[0].addPoint(point['port'][i], false);
             }
+	    for (var i = 0; i < point['len'].length - 1; i += 1) {
+	    	lenScatter.series[0].addPoint(point['len'][i], false);
+	    }
 	    resolve("resolve");
 	});
     }
@@ -41,17 +43,17 @@ function requestData() {
     });
 }
 
-$(document).ready(function() {
-    chart = new Highcharts.Chart({
+function createLineCharts(type, renderLocation) {
+    return new Highcharts.Chart({
         chart: {
-            renderTo: 'data-container',
+            renderTo: renderLocation,
             defaultSeriesType: 'spline',
             events: {
                 load: requestData
             }
         },
         title: {
-            text: 'Live network traffic'
+            text: 'Live network '.concat(type)
         },
         xAxis: {
             type: 'datetime',
@@ -62,24 +64,26 @@ $(document).ready(function() {
             minPadding: 0.2,
             maxPadding: 0.2,
             title: {
-                text: 'Traffic',
+                text: type,
                 margin: 80
             }
         },
         series: [{
-            name: 'Time series traffic data',
+            name: 'Time series '.concat(type),
             data: []
         }]
     });
+}
 
-    scatter = new Highcharts.Chart({
+function createScatterCharts(type, renderLocation) {
+    return new Highcharts.Chart({
         chart: {
-            renderTo: 'scatter-container',
+            renderTo: renderLocation,
             type: 'scatter',
             zoomType: 'xy'
         },
         title: {
-            text: 'Destination Port'
+            text: 'Destination '.concat(type)
         },
         xAxis: {
             type: 'datetime',
@@ -88,7 +92,7 @@ $(document).ready(function() {
         },
         yAxis: {
             title: {
-                text: 'Dst port'
+                text: 'Dst '.concat(type)
             }
         },
         legend: {
@@ -122,9 +126,17 @@ $(document).ready(function() {
             }
         },
         series: [{
-            name: 'Port number',
+            name: type,
             color: 'rgba(223, 83, 83, .5)',
             data: []
         }]
     });
+}
+$(document).ready(function() {
+    trafficChart = createLineCharts('Traffic', 'data-container');
+    console.log(trafficChart);
+    portScatter = createScatterCharts('port', 'port-scatter-container');
+    console.log(portScatter);
+    lenScatter = createScatterCharts('len', 'len-scatter-container');
+    console.log(lenScatter);
 });

@@ -15,16 +15,17 @@ def hello_world():
 def live_data():
     # load data from elasticsearch
     client = Elasticsearch()
-    s = Search(using=client, index="logstash*").filter("exists", field="dst_ip").filter("range", **{"@timestamp":{'gte': 'now-3s', 'lt': 'now'}})
+    s = Search(using=client, index="logstash*").filter("exists", field="dpt").filter("range", **{"@timestamp":{'gte': 'now-10s', 'lt': 'now'}})
 
     response = s.execute()
     # Create a PHP array and echo it as JSON
     data = {}
     data['traffic'] = [time() * 1000, s.count()]
     data['port'] = []
+    data['len'] = []
     for hit in response:
         data['port'].append([time() * 1000, hit.dpt])
-    print(len(data['port']))
+        data['len'].append([time() * 1000, hit.len])
     response = make_response(json.dumps(data))
     response.content_type = 'application/json'
     return response
